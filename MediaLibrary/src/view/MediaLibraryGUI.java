@@ -2,20 +2,33 @@ package view;
 
 import actions.AboutAction;
 import actions.ExitAction;
+import actions.LabelAction;
 import actions.NewItemAction;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * 
@@ -46,10 +59,11 @@ public class MediaLibraryGUI {
         initializeFields();
 
         makeMenu();
-
+        
         makeCenter();
 
         makeSouth();
+        
         startGUI();
     }
 
@@ -58,6 +72,7 @@ public class MediaLibraryGUI {
      */
     private void initializeFields() {
         myFrame = new JFrame();
+        myFrame.setSize(DEFAULT_SIZE);
     }
     /**
      * Generates and populates Menus and adds them to MenuBar.
@@ -119,7 +134,31 @@ public class MediaLibraryGUI {
 
         final List<JTable> tables = new ArrayList<JTable>();
         for (int i = 0; i < columnNames.length; i++) {
-            tables.add(new JTable(data[i], columnNames[i]));
+            @SuppressWarnings("serial")
+            final DefaultTableModel tableModel = 
+                            new DefaultTableModel(data[i], columnNames[i]) {
+                    @Override
+                    public boolean isCellEditable(final int theRow, final int theColumn) {
+                    //all cells false
+                        return false;
+                    }
+                };
+            final JTable table = new JTable(tableModel);
+            table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                    @Override
+                    public void valueChanged(final ListSelectionEvent theEvent) {
+                        // do some actions here, for example
+                        // print first column value from selected row
+                        final StringBuilder string = new StringBuilder();
+                        for (int i = 0; i < table.getColumnCount(); i++) {
+                            string.append(table.getValueAt(table.getSelectedRow(), i).
+                                          toString().
+                                          replaceAll("\\s+", ""));
+                        }
+                        System.out.println(string.toString());
+                    }
+                });
+            tables.add(table);
         }
 
         for (int i = 0; i < TAB_NAMES.length; i++) {
@@ -129,16 +168,32 @@ public class MediaLibraryGUI {
             final int ascii = (int) TAB_NAMES[i].charAt(0);
             tabPane.setMnemonicAt(0, ascii);
         }
-        myFrame.add(tabPane);
+        myFrame.add(tabPane, BorderLayout.NORTH);
     }
 
     /**
      * Item image and info are displayed in panels within this region.
      */
     private void makeSouth() {
-        // JPanel (box layout?) border.south
+        final JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        // JPanel (grid layout?) border.south
+        
+        final JLabel imageLabel = new JLabel();
+        imageLabel.addPropertyChangeListener("selected", null);
+        final int size = myFrame.getWidth() / 3; 
+        imageLabel.setPreferredSize(new Dimension(size, size));
+        Icon icon = new ImageIcon();
+        imageLabel.setIcon(icon);
+        
         // JLabel (left 1/3rd of panel)
+        final JTextArea infoText = new JTextArea();
+        infoText.setPreferredSize(new Dimension(size * 2, size));
+        
         // JTextArea (remainder of panel)
+        panel.add(imageLabel, BorderLayout.WEST);
+        panel.add(infoText, BorderLayout.EAST);
+        myFrame.add(panel, BorderLayout.SOUTH);
     }
 
     /**
@@ -149,7 +204,7 @@ public class MediaLibraryGUI {
         myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         myFrame.setLocationByPlatform(true);
         myFrame.pack();
-        myFrame.setSize(DEFAULT_SIZE);
+        
         myFrame.setVisible(true);
     }
 }
