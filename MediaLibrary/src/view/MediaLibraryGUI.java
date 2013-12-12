@@ -6,6 +6,8 @@ import actions.NewItemAction;
 
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -30,7 +32,7 @@ public class MediaLibraryGUI {
 
     /** String constants containing menu item names. */
     private static final String[] MENU_ITEM_STRINGS = {"New Item", "Exit", "About"};
-    
+
     /** String constants containing tab names. */
     private static final String[] TAB_NAMES = {"CDs", "DVDs", "Books", "XBox Games"};
 
@@ -46,9 +48,7 @@ public class MediaLibraryGUI {
         makeMenu();
 
         makeCenter();
-        // JPanel (box layout?) border.south
-        // JLabel (left 1/3rd of panel)
-        // JTextArea (remainder of panel)
+
         makeSouth();
         startGUI();
     }
@@ -67,8 +67,8 @@ public class MediaLibraryGUI {
         int j = 0;
         final JMenuBar bar = new JMenuBar();
         final Action[] menuActions = {new NewItemAction(MENU_ITEM_STRINGS[i++]),
-                                      new ExitAction(MENU_ITEM_STRINGS[i++], myFrame),
-                                      new AboutAction(MENU_ITEM_STRINGS[i++], myFrame)};
+                        new ExitAction(MENU_ITEM_STRINGS[i++], myFrame),
+                        new AboutAction(MENU_ITEM_STRINGS[i++], myFrame)};
         i = 0;
 
         final JMenu fileMenu = new JMenu(MENU_STRINGS[j++]);
@@ -76,18 +76,18 @@ public class MediaLibraryGUI {
         fileMenu.add(menuActions[i++]);
         fileMenu.addSeparator();
         fileMenu.add(menuActions[i++]);
-        
+
         final JMenu optionsMenu = new JMenu(MENU_STRINGS[j++]);
         optionsMenu.setMnemonic(KeyEvent.VK_O);
-        
+
         final JMenu helpMenu = new JMenu(MENU_STRINGS[j++]);
         helpMenu.setMnemonic(KeyEvent.VK_H);
         helpMenu.add(menuActions[i++]);
-        
+
         bar.add(fileMenu);
         bar.add(optionsMenu);
         bar.add(helpMenu);
-        
+
         myFrame.setJMenuBar(bar);
     }
 
@@ -99,10 +99,31 @@ public class MediaLibraryGUI {
         // JScrollPane
         // JTable
         final JTabbedPane tabPane = new JTabbedPane();
+
+        final String[][] columnNames = {{"Title", "Artist", "Genre"}, 
+                                        {"Title", "Year"}, 
+                                        {"Title", "Author"}, 
+                                        {"Title"}};
         
+        final Object[][][] data = {
+            {
+                {"Blue", "Third Eye Blind", "Pop-Punk"}, {"Ten", "Pearl Jam", "Grunge"}
+            }, {
+                {"Pacific Rim", "2013"}
+            }, {
+                {"Core Java", "Horstmann"}
+            }, {
+                {"DDR Revolution"}
+            }
+        };
+
+        final List<JTable> tables = new ArrayList<JTable>();
+        for (int i = 0; i < columnNames.length; i++) {
+            tables.add(new JTable(data[i], columnNames[i]));
+        }
+
         for (int i = 0; i < TAB_NAMES.length; i++) {
-            final JTable table = new JTable();
-            final JScrollPane scrollPane = new JScrollPane(table);
+            final JScrollPane scrollPane = new JScrollPane(tables.get(i));
             tabPane.addTab(TAB_NAMES[i], null, scrollPane,
                             "Does nothing");
             final int ascii = (int) TAB_NAMES[i].charAt(0);
@@ -115,7 +136,9 @@ public class MediaLibraryGUI {
      * Item image and info are displayed in panels within this region.
      */
     private void makeSouth() {
-        
+        // JPanel (box layout?) border.south
+        // JLabel (left 1/3rd of panel)
+        // JTextArea (remainder of panel)
     }
 
     /**
