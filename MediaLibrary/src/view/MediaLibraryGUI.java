@@ -85,13 +85,10 @@ public class MediaLibraryGUI {
         myFrame.setSize(DEFAULT_SIZE);
     }
 
-    private String[][] connectToDB() {
+    private List<String[]> connectToDB() {
         Connection conn = null;
         Statement stmt = null;
-        final String[][] columnNames = {{null, null, null}, 
-                        {null, null}, 
-                        {null, null}, 
-                        {null}};
+        List<String[]> result = new ArrayList<String[]>();
         try {
             //STEP 2: Register JDBC driver
             Class.forName(JDBC_DRIVER);
@@ -103,23 +100,27 @@ public class MediaLibraryGUI {
             //STEP 4: Execute a query
             stmt = conn.createStatement();
 
-//            final String query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'media' AND TABLE_NAME = 'cds';";
+            //            final String query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'media' AND TABLE_NAME = 'cds';";
 
 
             for (int i = 0; i < TABLE_NAMES.length; i++) {
-                ResultSet rs = stmt.executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'media' AND TABLE_NAME = '" + TABLE_NAMES[i] + "';");
+                //ResultSet rs = stmt.executeQuery("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'media' AND TABLE_NAME = '" + TABLE_NAMES[i] + "';");
+                ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM " + TABLE_NAMES[i] + " IN media;");
                 int j = 0;
+                String[] columns = new String[4];
                 try {
                     while (rs.next()) {
+                        
                         String s = rs.getString("COLUMN_NAME");
                         if (!"id".equals(s)) {
-                            columnNames[i][j++] = rs.getString("COLUMN_NAME");
+                            columns[j++] = s;
                         }
                     }
                 } catch (SQLException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+                result.add(columns);
 
             }
 
@@ -149,8 +150,9 @@ public class MediaLibraryGUI {
                 se.printStackTrace();
             } //end finally try
         } //end try
-        return columnNames;
+        return result;
     }
+
     /**
      * Generates and populates Menus and adds them to MenuBar.
      */
@@ -192,7 +194,7 @@ public class MediaLibraryGUI {
         // JTable
         final JTabbedPane tabPane = new JTabbedPane();
 
-        final String[][] columnNames = connectToDB();
+        List<String[]> columnNamesList = connectToDB();
 
         //        = {{"Title", "Artist", "Genre"}, 
         //                        {"Title", "Year"}, 
@@ -212,10 +214,11 @@ public class MediaLibraryGUI {
         };
 
         final List<JTable> tables = new ArrayList<JTable>();
-        for (int i = 0; i < columnNames.length; i++) {
+        for (int i = 0; i < columnNamesList.size(); i++) {
+            String[] columnNamesArray = columnNamesList.get(i);
             @SuppressWarnings("serial")
             final DefaultTableModel tableModel = 
-            new DefaultTableModel(data[i], columnNames[i]) {
+                new DefaultTableModel(data[i], columnNamesArray) {
                 @Override
                 public boolean isCellEditable(final int theRow, final int theColumn) {
                     //all cells false
